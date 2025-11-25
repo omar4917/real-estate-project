@@ -15,6 +15,7 @@
                 <input type="date" id="register-dob">
                 <label>Password</label>
                 <input type="password" id="register-password" required placeholder="••••••••">
+                <small class="hint">At least 6 chars, include uppercase, lowercase, and a number.</small>
                 <label>Confirm Password</label>
                 <input type="password" id="register-confirm" required placeholder="••••••••">
                 <button type="submit" class="btn">Register</button>
@@ -31,6 +32,13 @@ rForm.addEventListener('submit', async (e) => {
     rResult.textContent = 'Creating account...';
     const password = document.getElementById('register-password').value;
     const confirm = document.getElementById('register-confirm').value;
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasDigit = /\d/.test(password);
+    if (password.length < 6 || !hasUpper || !hasLower || !hasDigit) {
+        rResult.textContent = 'Password must be 6+ chars with upper, lower, and a digit.';
+        return;
+    }
     if (password !== confirm) {
         rResult.textContent = 'Passwords do not match.';
         return;
@@ -49,10 +57,14 @@ rForm.addEventListener('submit', async (e) => {
             body: JSON.stringify(payload),
         });
         const data = await resp.json();
-        if (!resp.ok) throw new Error(data.detail || 'Registration failed');
+        if (!resp.ok) {
+            const detail = data.detail || (Array.isArray(data) ? data.join(', ') : JSON.stringify(data));
+            throw new Error(detail || 'Registration failed');
+        }
         localStorage.setItem('accessToken', data.access);
         localStorage.setItem('refreshToken', data.refresh);
         rResult.textContent = 'Registered! Access token stored in localStorage.';
+        window.location = '/panel/';
     } catch (err) {
         rResult.textContent = err.message;
     }

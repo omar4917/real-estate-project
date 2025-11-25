@@ -12,6 +12,9 @@
                 <label>Password</label>
                 <input type="password" id="login-password" required placeholder="••••••••">
                 <button type="submit" class="btn">Login</button>
+                <div class="form__inline">
+                    <a class="link" href="/auth/password-reset/">Forgot password?</a>
+                </div>
             </form>
             <div id="login-result" class="notice"></div>
         </div>
@@ -44,7 +47,7 @@ form.addEventListener('submit', async (e) => {
         result.textContent = 'Success! Access token stored in localStorage.';
         window.location = '/panel/';
     } catch (err) {
-        result.textContent = err.message;
+        result.textContent = err.message || 'Login failed. Check email/username and password.';
     }
 });
 </script>
