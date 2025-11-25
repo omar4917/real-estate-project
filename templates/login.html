@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<section class="section auth">
+    <div class="card auth__card">
+        <div class="card__glass">
+            <h2>Login</h2>
+            <p class="card__location">Use your email or admin username with password.</p>
+            <form id="login-form" class="form">
+                <label>Email or Admin Username</label>
+                <input type="text" id="login-identifier" required placeholder="you@example.com or admin name">
+                <label>Password</label>
+                <input type="password" id="login-password" required placeholder="••••••••">
+                <button type="submit" class="btn">Login</button>
+            </form>
+            <div id="login-result" class="notice"></div>
+        </div>
+    </div>
+</section>
+<script>
+const form = document.getElementById('login-form');
+const result = document.getElementById('login-result');
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    result.textContent = 'Signing in...';
+    const payload = {
+        identifier: document.getElementById('login-identifier').value,
+        password: document.getElementById('login-password').value,
+    };
+    try {
+        const resp = await fetch('/auth/login/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'Login failed');
+        localStorage.setItem('accessToken', data.access);
+        localStorage.setItem('refreshToken', data.refresh);
+        if (data.user && data.user.is_staff) {
+            window.location = '/admin/';
+            return;
+        }
+        result.textContent = 'Success! Access token stored in localStorage.';
+        window.location = '/panel/';
+    } catch (err) {
+        result.textContent = err.message;
+    }
+});
+</script>
+{% endblock %}

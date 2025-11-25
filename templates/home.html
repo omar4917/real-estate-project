@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Luxury Properties{% endblock %}
+{% block content %}
+<section class="section">
+    <h2>Featured Properties</h2>
+    <div class="grid">
+        {% for p in properties %}
+        <a class="card" href="{% url 'property-page' slug=p.slug %}">
+            <div class="card__glass">
+                <div class="card__header">
+                    <h3>{{ p.name }}</h3>
+                    <span class="pill">{{ p.category.name }}</span>
+                </div>
+                <p class="card__location">{{ p.location }}</p>
+                <p class="card__price">${{ p.price }}</p>
+                <p class="card__meta">{{ p.bedrooms }} bd • {{ p.bathrooms }} ba</p>
+                <div class="card__amenities">
+                    {% for a in p.amenities|slice:":3" %}
+                        <span class="chip">{{ a }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <p>No properties yet.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

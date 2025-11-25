@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}My Panel{% endblock %}
+{% block content %}
+<section class="section">
+    <h2>My Dashboard</h2>
+    <div class="panel-grid">
+        <div class="card">
+            <div class="card__glass">
+                <h3>Your Info</h3>
+                <div id="me"></div>
+                <button class="btn" id="logout-btn">Logout</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card__glass">
+                <h3>Book a Property</h3>
+                <div class="form">
+                    <label>Property</label>
+                    <select id="prop-select"></select>
+                    <label>Start (ISO)</label>
+                    <input type="datetime-local" id="start-at">
+                    <label>End (ISO)</label>
+                    <input type="datetime-local" id="end-at">
+                    <button class="btn" id="book-btn">Create Booking</button>
+                    <div class="notice" id="book-result"></div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card__glass">
+                <h3>Bookings</h3>
+                <div id="bookings"></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card__glass">
+                <h3>Payments</h3>
+                <div id="payments"></div>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+async function authFetch(url, options={}) {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        throw new Error('Unauthorized');
+    }
+    const opts = Object.assign({headers: {}}, options);
+    opts.headers['Authorization'] = 'Bearer ' + token;
+    if (opts.body && !opts.headers['Content-Type']) {
+        opts.headers['Content-Type'] = 'application/json';
+    }
+    const resp = await fetch(url, opts);
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(data.detail || 'Request failed');
+    return data;
+}
+
+async function loadMe() {
+    const data = await authFetch('/auth/me/');
+    document.getElementById('me').innerHTML = `
+        <p>${data.email}</p>
+        <p>${data.mobile_number || ''}</p>
+        <p>${data.date_of_birth || ''}</p>
+    `;
+}
+
+async function loadProperties() {
+    const data = await fetch('/api/properties/').then(r => r.json());
+    const sel = document.getElementById('prop-select');
+    sel.innerHTML = '';
+    data.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.name} (${p.location})`;
+        sel.appendChild(opt);
+    });
+}
+
+async function loadBookings() {
+    const data = await authFetch('/api/bookings/');
+    const container = document.getElementById('bookings');
+    container.innerHTML = data.map(b => `
+        <div class="pill">${b.property.name} | ${b.status} | ${b.start_at} - ${b.end_at}</div>
+    `).join('') || '<p class="card__location">No bookings yet.</p>';
+}
+
+async function loadPayments() {
+    const data = await authFetch('/auth/me/payments/');
+    const container = document.getElementById('payments');
+    container.innerHTML = data.map(p => `
+        <div class="pill">${p.provider} | ${p.status} | tx: ${p.transaction_id || ''}</div>
+    `).join('') || '<p class="card__location">No payments yet.</p>';
+}
+
+document.getElementById('book-btn').addEventListener('click', async () => {
+    const result = document.getElementById('book-result');
+    result.textContent = 'Booking...';
+    const property_id = document.getElementById('prop-select').value;
+    const start_at = document.getElementById('start-at').value;
+    const end_at = document.getElementById('end-at').value;
+    try {
+        await authFetch('/api/bookings/create/', {
+            method: 'POST',
+            body: JSON.stringify({property_id, start_at, end_at}),
+        });
+        result.textContent = 'Booking created.';
+        await loadBookings();
+    } catch (e) {
+        result.textContent = e.message;
+    }
+});
+
+(async function init() {
+    try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) throw new Error('Unauthorized');
+        await loadMe();
+        await loadProperties();
+        await loadBookings();
+        await loadPayments();
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            window.location = '/login/';
+        });
+    } catch (e) {
+        console.error(e);
+        alert('Auth required, please log in again.');
+        window.location = '/login/';
+    }
+})();
+</script>
+{% endblock %}

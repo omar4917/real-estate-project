@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Luxury Real Estate{% endblock %}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header class="hero">
+        <div class="hero__overlay"></div>
+        <div class="hero__content">
+            <nav class="nav">
+                <div class="nav__logo"><a href="/">Luxury Estates</a></div>
+                <div class="nav__links">
+                    <a href="/">Home</a>
+                    <a href="/login/" id="nav-login">Login</a>
+                    <a href="/register/" id="nav-register">Register</a>
+                    <a href="/panel/" id="nav-panel" style="display:none;">User Panel</a>
+                    <a href="#" id="nav-logout" style="display:none;">Logout</a>
+                </div>
+            </nav>
+            <div class="hero__text">
+                <h1>Luxury Real Estate</h1>
+                <p>Curated villas, penthouses, and estates.</p>
+            </div>
+        </div>
+    </header>
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="footer">
+        <p>&copy; {{ now|default:2025 }} Luxury Estates</p>
+    </footer>
+    <script>
+    (function() {
+        const token = localStorage.getItem('accessToken');
+        const loginLink = document.getElementById('nav-login');
+        const regLink = document.getElementById('nav-register');
+        const panelLink = document.getElementById('nav-panel');
+        const logoutLink = document.getElementById('nav-logout');
+        if (token) {
+            if (loginLink) loginLink.style.display = 'none';
+            if (regLink) regLink.style.display = 'none';
+            if (panelLink) panelLink.style.display = 'inline-flex';
+            if (logoutLink) {
+                logoutLink.style.display = 'inline-flex';
+                logoutLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    window.location = '/login/';
+                });
+            }
+        }
+    })();
+    </script>
+</body>
+</html>

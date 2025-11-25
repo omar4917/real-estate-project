@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ property.name }}{% endblock %}
+{% block content %}
+<section class="section detail">
+    <div class="detail__header">
+        <div>
+            <p class="pill">{{ property.category.name }}</p>
+            <h2>{{ property.name }}</h2>
+            <p class="card__location">{{ property.location }}</p>
+        </div>
+        <div class="detail__price">
+            <p class="card__price">${{ property.price }}</p>
+            <p class="card__meta">{{ property.bedrooms }} bd • {{ property.bathrooms }} ba</p>
+        </div>
+    </div>
+    <div class="detail__body">
+        <p>{{ property.description }}</p>
+        <h4>Amenities</h4>
+        <div class="card__amenities">
+            {% for a in property.amenities %}
+                <span class="chip">{{ a }}</span>
+            {% empty %}
+                <span>No amenities listed.</span>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="detail__actions">
+        <a class="btn" href="/auth/login">Book a viewing</a>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<section class="section auth">
+    <div class="card auth__card">
+        <div class="card__glass">
+            <h2>Create Account</h2>
+            <p class="card__location">Register with email and password.</p>
+            <form id="register-form" class="form">
+                <label>Email</label>
+                <input type="email" id="register-email" required placeholder="you@example.com">
+                <label>Mobile Number</label>
+                <input type="text" id="register-mobile" placeholder="+8801XXXXXXXXX">
+                <label>Date of Birth</label>
+                <input type="date" id="register-dob">
+                <label>Password</label>
+                <input type="password" id="register-password" required placeholder="••••••••">
+                <label>Confirm Password</label>
+                <input type="password" id="register-confirm" required placeholder="••••••••">
+                <button type="submit" class="btn">Register</button>
+            </form>
+            <div id="register-result" class="notice"></div>
+        </div>
+    </div>
+</section>
+<script>
+const rForm = document.getElementById('register-form');
+const rResult = document.getElementById('register-result');
+rForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    rResult.textContent = 'Creating account...';
+    const password = document.getElementById('register-password').value;
+    const confirm = document.getElementById('register-confirm').value;
+    if (password !== confirm) {
+        rResult.textContent = 'Passwords do not match.';
+        return;
+    }
+    const payload = {
+        email: document.getElementById('register-email').value,
+        password,
+        confirm_password: confirm,
+        mobile_number: document.getElementById('register-mobile').value,
+        date_of_birth: document.getElementById('register-dob').value,
+    };
+    try {
+        const resp = await fetch('/auth/register/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'Registration failed');
+        localStorage.setItem('accessToken', data.access);
+        localStorage.setItem('refreshToken', data.refresh);
+        rResult.textContent = 'Registered! Access token stored in localStorage.';
+    } catch (err) {
+        rResult.textContent = err.message;
+    }
+});
+</script>
+{% endblock %}
